@@ -6,6 +6,18 @@ import { generateId } from "lucia";
 
 import type { DatabaseUser } from "@/lib/db";
 
+import {
+  fetch,
+  setGlobalDispatcher,
+  Agent,
+} from 'undici'
+
+setGlobalDispatcher(new Agent({
+  connect: {
+    rejectUnauthorized: false
+  }
+}))
+
 export async function GET(request: Request): Promise<Response> {
 	const url = new URL(request.url);
 	const code = url.searchParams.get("code");
@@ -30,7 +42,7 @@ export async function GET(request: Request): Promise<Response> {
 			}
 		});
 
-		const authentikUser: AuthentikUser = await authentikUserResponse.json();
+		const authentikUser = await authentikUserResponse.json() as unknown as AuthentikUser;
 		const existingUser = db.prepare("SELECT * FROM user WHERE authentik_id = ?").get(authentikUser.sub) as
 			| DatabaseUser
 			| undefined;
